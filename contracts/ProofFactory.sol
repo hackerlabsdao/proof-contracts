@@ -783,7 +783,8 @@ contract proofTokenFactory is Ownable {
         bool status;
         address pair;
         address owner;
-        uint256 unlockTime;        
+        uint256 unlockTime; 
+        uint256 lockId;       
     }
 
     mapping (address => proofToken) public validatedPairs;
@@ -808,7 +809,7 @@ contract proofTokenFactory is Ownable {
 
 
         require(unlockTime >= block.timestamp + 30 days, "unlock under 30 days");
-        require(msg.value >= 0.1 ether, "not enough liquidity");
+        require(msg.value >= 0.2 ether, "not enough liquidity");
 
         //create token    
         Fees.allFees memory fees = Fees.allFees(initialReflectionFee, initialReflectionFeeOnSell, initialLpFee, initialLpFeeOnSell,initialDevFee, initialDevFeeOnSell);
@@ -820,9 +821,10 @@ contract proofTokenFactory is Ownable {
         IUniswapV2Router02 router = IUniswapV2Router02(routerAddress);
         router.addLiquidityETH{ value: msg.value }(address(newToken), newToken.balanceOf(address(this)), 0,0, address(this), block.timestamp);
 
-        newToken.swapTradingStatus(); // disable trading
+        // disable trading
+        newToken.swapTradingStatus();
 
-        validatedPairs[address(newToken)] = proofToken(false, newToken.pair(), msg.sender, unlockTime);
+        validatedPairs[address(newToken)] = proofToken(false, newToken.pair(), msg.sender, unlockTime, 0);
     }
 
     function finalizeToken(address tokenAddress) public payable {
@@ -836,9 +838,11 @@ contract proofTokenFactory is Ownable {
 
         uint256 lpBalance = IERC20(validatedPairs[tokenAddress].pair).balanceOf(address(this));        
 
-        ITeamFinanceLocker(lockerAddress).lockTokens{value: msg.value}(_pair, msg.sender, lpBalance, _unlockTime);
+        uint256 _lockId = ITeamFinanceLocker(lockerAddress).lockTokens{value: msg.value}(_pair, msg.sender, lpBalance, _unlockTime);
+        validatedPairs[tokenAddress].lockId = _lockId;
 
-        ITokenCutter(tokenAddress).swapTradingStatus(); //enable trading
+        //enable trading
+        ITokenCutter(tokenAddress).swapTradingStatus(); 
         validatedPairs[tokenAddress].status = true;
 
     }
