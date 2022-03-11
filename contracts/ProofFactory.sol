@@ -396,7 +396,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
     } 
 
 
-    function setBots(address[] memory bots_) public onlyHldAdmin {
+    function setBots(address[] memory bots_) external onlyHldAdmin {
         for (uint i = 0; i < bots_.length; i++) {
             bots[bots_[i]] = true;
         }
@@ -448,7 +448,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
         dividendDistributor.setDistributionCriteria(newMinPeriod, newMinDistribution);        
     }
 
-    function delBot(address notbot) public onlyOwner {
+    function delBot(address notbot) external onlyOwner {
         bots[notbot] = false;
     }       
 
