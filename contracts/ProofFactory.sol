@@ -422,16 +422,19 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
     }
 
     function changeTxLimit(uint256 newLimit) external onlyOwner {
+        require(launchedAt != 0, "!launched");
         require(block.timestamp >= launchedAt + 24 hours, "too soon");
         _maxTxAmount = newLimit;
     }
 
     function changeWalletLimit(uint256 newLimit) external onlyOwner {
+        require(launchedAt != 0, "!launched");
         require(block.timestamp >= launchedAt + 24 hours, "too soon");        
         _walletMax  = newLimit;
     }
 
     function changeRestrictWhales(bool newValue) external onlyOwner {
+        require(launchedAt != 0, "!launched");        
         require(block.timestamp >= launchedAt + 24 hours, "too soon");                
         restrictWhales = newValue;
     }
@@ -441,6 +444,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
     }
 
     function changeIsTxLimitExempt(address holder, bool exempt) external onlyOwner {
+        require(launchedAt != 0, "!launched");        
         require(block.timestamp >= launchedAt + 24 hours, "too soon");        
         isTxLimitExempt[holder] = exempt;
     }
@@ -848,7 +852,7 @@ contract proofTokenFactory is Ownable {
         uint256 _unlockTime = validatedPairs[tokenAddress].unlockTime;
         IERC20(_pair).approve(lockerAddress, type(uint256).max);        
 
-        uint256 lpBalance = IERC20(validatedPairs[tokenAddress].pair).balanceOf(address(this));        
+        uint256 lpBalance = IERC20(_pair).balanceOf(address(this));        
 
         uint256 _lockId = ITeamFinanceLocker(lockerAddress).lockTokens{value: msg.value}(_pair, msg.sender, lpBalance, _unlockTime);
         validatedPairs[tokenAddress].lockId = _lockId;
