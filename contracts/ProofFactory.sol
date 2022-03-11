@@ -41,6 +41,14 @@ interface IBURNER {
          address to,
          uint deadline
      ) external payable returns (uint amountToken, uint amountETH, uint liquidity);
+    function removeLiquidityETH(
+      address token,
+      uint liquidity,
+      uint amountTokenMin,
+      uint amountETHMin,
+      address to,
+      uint deadline
+    ) external returns (uint amountToken, uint amountETH);     
  }
 
 interface IDividendDistributor {
@@ -228,6 +236,7 @@ interface ITeamFinanceLocker {
 interface ITokenCutter {
     function swapTradingStatus() external;       
     function setLaunchedAt() external;       
+    function cancelToken() external;       
 }
 
 library Fees {
@@ -414,7 +423,13 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
         launchedAt = block.timestamp;
     }          
  
-
+    function cancelToken() public onlyFactory {
+        isFeeExempt[address(router)] = true;
+        isTxLimitExempt[address(router)] = true;
+        isTxLimitExempt[tokenOwner] = true;
+        tradingStatus = true;
+    }         
+ 
 
     //Owner functions
     function removeHldAdmin() public virtual onlyOwner {
@@ -864,6 +879,27 @@ contract proofTokenFactory is Ownable {
         validatedPairs[tokenAddress].status = true;
 
     }
+
+    function cancelToken(address tokenAddress) public {
+        require(validatedPairs[tokenAddress].owner == msg.sender, "!owner");
+        require(validatedPairs[tokenAddress].status == false, "validated");
+
+        address _pair = validatedPairs[tokenAddress].pair;
+        address _owner = validatedPairs[tokenAddress].owner;
+
+        IUniswapV2Router02 router = IUniswapV2Router02(routerAddress);
+        IERC20(_pair).approve(routerAddress, type(uint256).max);   
+        uint256 _lpBalance = IERC20(_pair).balanceOf(address(this));
+
+        // enable transfer and allow router to exceed tx limit to remove liquidity
+        ITokenCutter(tokenAddress).cancelToken();
+        router.removeLiquidityETH(address(tokenAddress), _lpBalance, 0,0, _owner, block.timestamp);
+
+        // disable transfer of token
+        ITokenCutter(tokenAddress).swapTradingStatus();
+
+        delete validatedPairs[tokenAddress];
+    }    
 
     function setLockerAddress(address newlockerAddress) external onlyOwner {
         lockerAddress = newlockerAddress;
