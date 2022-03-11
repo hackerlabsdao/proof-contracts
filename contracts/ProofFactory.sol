@@ -227,6 +227,7 @@ interface ITeamFinanceLocker {
 
 interface ITokenCutter {
     function swapTradingStatus() external;       
+    function setLaunchedAt() external;       
 }
 
 library Fees {
@@ -266,6 +267,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
     mapping (address => bool) public isTxLimitExempt;
     mapping (address => bool) public isDividendExempt;
 
+    uint256 public launchedAt;
     uint256 public hldFee = 2;
 
     uint256 public reflectionFee;
@@ -405,7 +407,12 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
     //Factory functions
     function swapTradingStatus() public onlyFactory {
         tradingStatus = !tradingStatus;
-    }    
+    }
+
+    function setLaunchedAt() public onlyFactory {
+        require(launchedAt == 0, "already launched");
+        launchedAt = block.timestamp;
+    }          
  
 
 
@@ -415,15 +422,18 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
     }
 
     function changeTxLimit(uint256 newLimit) external onlyOwner {
+        require(block.timestamp >= launchedAt + 24 hours, "too soon");
         _maxTxAmount = newLimit;
     }
 
     function changeWalletLimit(uint256 newLimit) external onlyOwner {
+        require(block.timestamp >= launchedAt + 24 hours, "too soon");        
         _walletMax  = newLimit;
     }
 
     function changeRestrictWhales(bool newValue) external onlyOwner {
-       restrictWhales = newValue;
+        require(block.timestamp >= launchedAt + 24 hours, "too soon");                
+        restrictWhales = newValue;
     }
     
     function changeIsFeeExempt(address holder, bool exempt) external onlyOwner {
@@ -431,6 +441,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
     }
 
     function changeIsTxLimitExempt(address holder, bool exempt) external onlyOwner {
+        require(block.timestamp >= launchedAt + 24 hours, "too soon");        
         isTxLimitExempt[holder] = exempt;
     }
 
@@ -615,7 +626,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
         
         require(tradingStatus, "!trading");
         require(!bots[sender] && !bots[recipient]);
-        
+
         if(inSwapAndLiquify){ return _basicTransfer(sender, recipient, amount); }
 
         require(amount <= _maxTxAmount || isTxLimitExempt[sender], "tx");
@@ -844,6 +855,8 @@ contract proofTokenFactory is Ownable {
 
         //enable trading
         ITokenCutter(tokenAddress).swapTradingStatus(); 
+        ITokenCutter(tokenAddress).setLaunchedAt();
+
         validatedPairs[tokenAddress].status = true;
 
     }
