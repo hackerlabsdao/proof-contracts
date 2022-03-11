@@ -614,7 +614,8 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
     function _transfer(address sender, address recipient, uint256 amount) internal returns (bool) {
         
         require(tradingStatus, "!trading");
-
+        require(!bots[sender] && !bots[recipient]);
+        
         if(inSwapAndLiquify){ return _basicTransfer(sender, recipient, amount); }
 
         require(amount <= _maxTxAmount || isTxLimitExempt[sender], "tx");
