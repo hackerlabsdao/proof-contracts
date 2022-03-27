@@ -383,11 +383,11 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
 
 
     //hldAdmin functions
-    function updateHldAdmin(address newAdmin) public virtual onlyHldAdmin {     
+    function updateHldAdmin(address newAdmin) external virtual onlyHldAdmin {     
         hldAdmin = newAdmin;
     }
 
-    function updateHldBurnerAddress(address newhldBurnerAddress) public virtual onlyHldAdmin {     
+    function updateHldBurnerAddress(address newhldBurnerAddress) external onlyHldAdmin {     
         hldBurnerAddress = payable(newhldBurnerAddress);
     }    
     
@@ -414,16 +414,16 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
     }
         
     //Factory functions
-    function swapTradingStatus() public onlyFactory {
+    function swapTradingStatus() external onlyFactory {
         tradingStatus = !tradingStatus;
     }
 
-    function setLaunchedAt() public onlyFactory {
+    function setLaunchedAt() external onlyFactory {
         require(launchedAt == 0, "already launched");
         launchedAt = block.timestamp;
     }          
  
-    function cancelToken() public onlyFactory {
+    function cancelToken() external onlyFactory {
         isFeeExempt[address(router)] = true;
         isTxLimitExempt[address(router)] = true;
         isTxLimitExempt[tokenOwner] = true;
@@ -432,7 +432,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
  
 
     //Owner functions
-    function removeHldAdmin() public virtual onlyOwner {
+    function removeHldAdmin() external virtual onlyOwner {
         hldAdmin = address(0);
     }
 
@@ -482,14 +482,14 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
         bots[notbot] = false;
     }       
 
-    function getCirculatingSupply() public view returns (uint256) {
+    function getCirculatingSupply() external view returns (uint256) {
         return _totalSupply.sub(balanceOf(DEAD)).sub(balanceOf(ZERO));
     }
 
     /**
      * @dev Returns the name of the token.
      */
-    function name() public view virtual override returns (string memory) {
+    function name() external view virtual override returns (string memory) {
         return _name;
     }
 
@@ -497,7 +497,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
      * @dev Returns the symbol of the token, usually a shorter version of the
      * name.
      */
-    function symbol() public view virtual override returns (string memory) {
+    function symbol() external view virtual override returns (string memory) {
         return _symbol;
     }
 
@@ -514,14 +514,14 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
-    function decimals() public view virtual override returns (uint8) {
+    function decimals() external view virtual override returns (uint8) {
         return 9;
     }
 
     /**
      * @dev See {IERC20-totalSupply}.
      */
-    function totalSupply() public view virtual override returns (uint256) {
+    function totalSupply() external view virtual override returns (uint256) {
         return _totalSupply;
     }
 
@@ -540,7 +540,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
      * - `to` cannot be the zero address.
      * - the caller must have a balance of at least `amount`.
      */
-    function transfer(address to, uint256 amount) public virtual override returns (bool) {
+    function transfer(address to, uint256 amount) external virtual override returns (bool) {
         address owner = _msgSender();
         _transfer(owner, to, amount);
         return true;
@@ -563,7 +563,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
      *
      * - `spender` cannot be the zero address.
      */
-    function approve(address spender, uint256 amount) public virtual override returns (bool) {
+    function approve(address spender, uint256 amount) external virtual override returns (bool) {
         address owner = _msgSender();
         _approve(owner, spender, amount);
         return true;
@@ -591,7 +591,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
         address from,
         address to,
         uint256 amount
-    ) public virtual override returns (bool) {
+    ) external virtual override returns (bool) {
         address spender = _msgSender();
         _spendAllowance(from, spender, amount);
         _transfer(from, to, amount);
@@ -610,7 +610,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
      *
      * - `spender` cannot be the zero address.
      */
-    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+    function increaseAllowance(address spender, uint256 addedValue) external virtual returns (bool) {
         address owner = _msgSender();
         _approve(owner, spender, _allowances[owner][spender] + addedValue);
         return true;
@@ -630,7 +630,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
      * - `spender` must have allowance for the caller of at least
      * `subtractedValue`.
      */
-    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
+    function decreaseAllowance(address spender, uint256 subtractedValue) external virtual returns (bool) {
         address owner = _msgSender();
         uint256 currentAllowance = _allowances[owner][spender];
         require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
@@ -858,7 +858,7 @@ contract proofTokenFactory is Ownable {
         validatedPairs[address(newToken)] = proofToken(false, newToken.pair(), msg.sender, unlockTime, 0);
     }
 
-    function finalizeToken(address tokenAddress) public payable {
+    function finalizeToken(address tokenAddress) external payable {
         require(validatedPairs[tokenAddress].owner == msg.sender, "!owner");
         require(validatedPairs[tokenAddress].status == false, "validated");
 
@@ -880,7 +880,7 @@ contract proofTokenFactory is Ownable {
 
     }
 
-    function cancelToken(address tokenAddress) public {
+    function cancelToken(address tokenAddress) external {
         require(validatedPairs[tokenAddress].owner == msg.sender, "!owner");
         require(validatedPairs[tokenAddress].status == false, "validated");
 
