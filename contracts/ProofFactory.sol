@@ -845,7 +845,7 @@ contract proofTokenFactory is Ownable {
 
 
         require(unlockTime >= block.timestamp + 30 days, "unlock under 30 days");
-        require(msg.value >= 0.2 ether, "not enough liquidity");
+        require(msg.value >= 1 ether, "not enough liquidity");
 
         //create token    
         Fees.allFees memory fees = Fees.allFees(initialReflectionFee, initialReflectionFeeOnSell, initialLpFee, initialLpFeeOnSell,initialDevFee, initialDevFeeOnSell);
