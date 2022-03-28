@@ -254,7 +254,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
     using SafeMath for uint256;
 
     IDividendDistributor public dividendDistributor;
-    uint256 distributorGas = 500000;
+    uint256 constant distributorGas = 500000;
 
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
@@ -265,8 +265,8 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
     string private _symbol;
 
 
-    address DEAD = 0x000000000000000000000000000000000000dEaD;
-    address ZERO = 0x0000000000000000000000000000000000000000;
+    address constant DEAD = 0x000000000000000000000000000000000000dEaD;
+    address constant ZERO = 0x0000000000000000000000000000000000000000;
     address payable public hldBurnerAddress;
     address public hldAdmin;
 
@@ -463,6 +463,16 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
         require(block.timestamp >= launchedAt + 24 hours, "too soon");        
         isTxLimitExempt[holder] = exempt;
     }
+
+    function reduceHldFee() external onlyOwner {
+        require(hldFee == 2, "!already reduced");                
+        require(launchedAt != 0, "!launched");        
+        require(block.timestamp >= launchedAt + 72 hours, "too soon");
+
+        hldFee = 1;
+        totalFee = devFee.add(lpFee).add(reflectionFee).add(hldFee);
+        totalFeeIfSelling = devFeeOnSell.add(lpFeeOnSell).add(reflectionFeeOnSell).add(hldFee); 
+    }    
 
 
     function setDevWallet(address payable newDevWallet) external onlyOwner {
@@ -808,7 +818,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
 
 contract proofTokenFactory is Ownable {
 
-    address ZERO = 0x0000000000000000000000000000000000000000;    
+    address constant ZERO = 0x0000000000000000000000000000000000000000;    
 
     struct proofToken {
         bool status;
