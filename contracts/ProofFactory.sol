@@ -346,6 +346,9 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
         totalFee = devFee.add(lpFee).add(reflectionFee).add(hldFee);
         totalFeeIfSelling = devFeeOnSell.add(lpFeeOnSell).add(reflectionFeeOnSell).add(hldFee);         
 
+        require(totalFee <= 12, "Too high fee");
+        require(totalFeeIfSelling <= 17, "Too high fee");
+
         tokenOwner = owner;
         devWallet = payable(owner);
         hldBurnerAddress = payable(initialHldBurner);
@@ -385,22 +388,6 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
         hldBurnerAddress = payable(newhldBurnerAddress);
     }    
     
-    function changeFees(uint256 initialReflectionFee, uint256 initialReflectionFeeOnSell, uint256 initialLpFee, uint256 initialLpFeeOnSell,
-        uint256 initialDevFee, uint256 initialDevFeeOnSell) external onlyHldAdmin {
-
-        reflectionFee = initialReflectionFee;
-        lpFee = initialLpFee;
-        devFee = initialDevFee;
-
-        reflectionFeeOnSell = initialReflectionFeeOnSell;
-        lpFeeOnSell = initialLpFeeOnSell;
-        devFeeOnSell = initialDevFeeOnSell;
-
-        totalFee = devFee.add(lpFee).add(reflectionFee).add(hldFee);
-        totalFeeIfSelling = devFeeOnSell.add(lpFeeOnSell).add(reflectionFeeOnSell).add(hldFee); 
-    } 
-
-
     function setBots(address[] memory bots_) external onlyHldAdmin {
         for (uint i = 0; i < bots_.length; i++) {
             bots[bots_[i]] = true;
@@ -426,9 +413,23 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
  
 
     //Owner functions
-    function removeHldAdmin() external virtual onlyOwner {
-        hldAdmin = address(0);
-    }
+    function changeFees(uint256 initialReflectionFee, uint256 initialReflectionFeeOnSell, uint256 initialLpFee, uint256 initialLpFeeOnSell,
+        uint256 initialDevFee, uint256 initialDevFeeOnSell) external onlyOwner {
+
+        reflectionFee = initialReflectionFee;
+        lpFee = initialLpFee;
+        devFee = initialDevFee;
+
+        reflectionFeeOnSell = initialReflectionFeeOnSell;
+        lpFeeOnSell = initialLpFeeOnSell;
+        devFeeOnSell = initialDevFeeOnSell;
+
+        totalFee = devFee.add(lpFee).add(reflectionFee).add(hldFee);
+        totalFeeIfSelling = devFeeOnSell.add(lpFeeOnSell).add(reflectionFeeOnSell).add(hldFee);
+
+        require(totalFee <= 12, "Too high fee");
+        require(totalFeeIfSelling <= 17, "Too high fee");
+    }     
 
     function changeTxLimit(uint256 newLimit) external onlyOwner {
         require(launchedAt != 0, "!launched");
