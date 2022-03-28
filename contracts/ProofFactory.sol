@@ -90,12 +90,6 @@ contract DividendDistributor is IDividendDistributor {
     uint256 currentIndex;
     bool initialized;
 
-    modifier initialization() {
-        require(!initialized);
-        _;
-        initialized = true;
-    }
-
     modifier onlyToken() {
         require(msg.sender == _token); _;
     }
