@@ -248,7 +248,7 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
     using SafeMath for uint256;
 
     IDividendDistributor public dividendDistributor;
-    uint256 constant distributorGas = 500000;
+    uint256 distributorGas = 500000;
 
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
@@ -458,6 +458,12 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
         require(block.timestamp >= launchedAt + 24 hours, "too soon");        
         isTxLimitExempt[holder] = exempt;
     }
+
+
+    function changeDistributorGas(uint256 _distributorGas) external onlyOwner {
+        distributorGas = _distributorGas;
+    }
+
 
     function reduceHldFee() external onlyOwner {
         require(hldFee == 2, "!already reduced");                
