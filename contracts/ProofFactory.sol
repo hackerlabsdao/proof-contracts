@@ -480,6 +480,10 @@ contract TokenCutter is Context, IERC20, IERC20Metadata {
         devWallet = payable(newDevWallet);
     } 
 
+    function setOwnerWallet(address payable newOwnerWallet) external onlyOwner {
+        tokenOwner = newOwnerWallet;
+    }
+
     function changeSwapBackSettings(bool enableSwapBack, uint256 newSwapBackLimit) external onlyOwner {
         swapAndLiquifyEnabled  = enableSwapBack;
         swapThreshold = newSwapBackLimit;
